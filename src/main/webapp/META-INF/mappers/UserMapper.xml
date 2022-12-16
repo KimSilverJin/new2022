@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.UserDAO">
+	<select id="idPwCheck" resultType="UserVO">
+		select * from user_info where user_id=#{userId} and user_pw=#{userPw};
+	</select>
+	<select id="userId" resultType="String">
+		select user_id from user_info where user_id= #{userId}
+	</select>
+	<insert id="insertUser" keyProperty="userCode">
+		insert into user_info (user_id,user_pw,user_name,user_birth,user_gender,user_local,user_district,user_address,user_email1,user_email2) values(#{userId},#{userPw},#{userName},#{userBirth},#{userGender},#{userLocal},#{userDistrict},#{userAddress},#{userEmail1},#{userEmail2})
+	</insert>
+	<insert id="insertGameStat">
+		insert into user_abil (user_code,user_name,user_gender) value(#{userCode},#{userName},#{userGender});
+	</insert>
+	
+	<select id="userIdList" resultType="UserVO">
+		select user_id from user_info
+	</select>
+	
+	<!-- 카운트 값이 0이면 통과 1이면 체크-->
+<select id="blackCheck" resultType="int">
+	select count(*) from user_info where user_id=#{userId} and user_black = 'O';
+</select>
+	
+	<!-- 아이디 패스워드 찾기 사용 -->
+	<select id="searchUser1" resultType="UserVO">
+		select user_id, user_name, user_email1, user_email2
+		from user_info
+		where user_name = #{userName} and user_email1 = #{userEmail1} and user_email2 = #{userEmail2}
+	</select>
+	
+	<select id="searchUser2" resultType="UserVO">
+		select user_id, user_name, user_email1, user_email2
+		from user_info
+		where user_id = #{userId} and user_email1 = #{userEmail1} and user_email2 = #{userEmail2}
+	</select>
+	
+	<update id="newPassword">
+		update user_info set user_pw = #{userPw}
+		where user_id = #{userId}
+	</update>
+	
+	<!-- 마이페이지 조회용 -->
+	<select id="getUserAbil" resultType="UinVO">
+		SELECT * FROM user_abil
+		WHERE user_code = #{userCode}
+	</select>
+	
+	<select id="userinfoList" resultType="UserVO">
+		SELECT user_id, user_email1, user_email2
+		FROM user_info
+	</select>
+	
+	<update id="changeUserinfo">
+		UPDATE user_info set user_name = #{userName}, user_id = #{userId}, user_email1 = #{userEmail1}, user_email2 = #{userEmail2},
+		user_birth = #{userBirth}, user_gender = #{userGender}, user_local = #{userLocal}, user_district = #{userDistrict}, user_address = #{userAddress}
+		WHERE user_code = #{userCode}
+	</update>
+</mapper>
+

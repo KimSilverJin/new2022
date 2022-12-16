@@ -1,0 +1,212 @@
+@charset "UTF-8";
+        * {
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sub_container {
+            width: 46%;
+        }
+
+        .header {
+            padding: 10px;
+
+            border: 1px solid black;
+            height: 70px;
+            width: 1024px;
+            display: grid;
+            grid-template-columns: 1fr 2fr 0.5fr;
+            grid-template-areas: 'logo search login';
+        }
+
+        .search {
+            border: 1px solid black;
+            width: 500px;
+            height: 40px;
+            grid-area: search;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search_box {
+            border: 1px solid black;
+            width: 50px;
+            height: 40px;
+            flex: 8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #searchcontent {
+            width: 400px;
+        }
+
+        .search_button {
+            flex: 1;
+            border: 1px solid black;
+            width: 10px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search_button a {
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .search_button a:hover {
+            cursor: pointer;
+        }
+
+        .login {
+            border: 1px solid black;
+            width: 70px;
+            height: 40px;
+            grid-area: login;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login a {
+            text-decoration: none;
+        }
+        .img_group{
+            display: flex;
+            flex-wrap: nowrap;
+            width : 100%;
+        }
+       
+        .gamefield_picture > img {
+        	width : 1024px;
+        	height : 448px;
+        	margin: 0 auto;
+        } 
+        
+
+        #map {
+            width: 1024px;
+            border: 1px solid black;
+            display: none;
+        }
+
+        .mainpage {
+            display: flex;
+            width: 1024px;
+            border: 1px solid black;
+        }
+
+        .left_mainpage {
+            flex: 3;
+            height: 500px;
+            border: 1px solid black;
+
+        }
+
+        .left_mainpage .match_info p {
+            font-weight: 700;
+            font-size: 30px;
+            padding: 25px 20px;
+
+        }
+
+        .left_mainpage .match_detail {
+            border-bottom: 1px solid gray;
+        }
+
+        .left_mainpage .match_detail ul {
+            list-style-type: none;
+            line-height: 40px;
+        }
+
+        .left_mainpage .match_detail ul li {
+            display: inline-block;
+            width: 48%;
+        }
+
+        .left_mainpage .match_detail ul li:last_child {
+            text-decoration: underline;
+        }
+
+        .left_mainpage .manager_info {
+            margin-left: 20px;
+        }
+
+        .left_mainpage .match_info .hometeam_info {
+            width: 100%;
+        }
+
+        .left_mainpage .team_info {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .left_mainpage .team_info .team_detail {
+            display: flex;
+            width: 100%;
+        }
+
+        .left_mainpage .team_info .team_detail .hometeam_info {
+
+            width: 48%;
+        }
+
+        .left_mainpage .team_info .team_detail .awayteam_info {
+
+            width: 48%;
+        }
+
+        .right-mainpage {
+            flex: 1;
+            border: 1px solid black;
+            width: 100%;
+            padding: 20px 20px;
+            position: sticky;
+
+        }
+
+        .right_mainpage .pc_sticky {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+
+        }
+
+        .right_mainpage .pc_sticky .match_time {
+            font-weight: 700;
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        .right_mainpage .pc_sticky .match_location .field_name a {
+            text-decoration: none;
+            color: black;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .mapview {
+            position: absolute;
+            
+            z-index: 100;
+            width: 100%;
+            height: 448px;
+            top: 70px;
+            left : 160px;
+            right : 0;
+            display: none;
+
+        }

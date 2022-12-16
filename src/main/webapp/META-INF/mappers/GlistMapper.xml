@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.GlistDAO">
+	<select id="list" resultType="GlistVO" parameterType="GlistVO">
+		select game_code,game_type,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_mag,game_pay
+		from gamelist
+		<where>
+			<if test="gameDay != null">
+				and DATE_FORMAT(game_day, '%Y-%m-%d') = #{gameDay}
+			</if>
+			<if test="gamePlace != null">
+				and field_address like #{gamePlace}
+			</if>
+			<if test="gameGender != null">
+				and game_gender = #{gameGender}
+			</if>
+			<if test="close != null">
+				and close = #{close}
+			</if>
+			<if test="level != null">
+				and level like #{level}
+			</if>
+			<if test="gameMacth != null">
+				and game_macth like #{gameMacth}
+			</if>
+				and game_type = 'S'
+		</where>
+		ORDER BY game_time
+	</select>
+	
+	
+	<select id="info" resultType="GlistVO">
+		select game_code,game_type,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_mag,game_pay
+		from gamelist
+		<where>
+			<if test="num != null">
+				and game_code = #{num}
+			</if>
+				and game_type = 'S'
+		</where>
+	</select>
+	
+	<update id="subgame">
+		UPDATE gamelist 
+		SET game_pnum = game_pnum+1
+		WHERE game_code = #{num} and game_type = 'S'
+	</update>
+	
+	<update id="maxgame">
+		UPDATE gamelist 
+		SET game_pnum = game_pnum+1, close = 'false'
+		WHERE game_code = #{num} and game_type = 'S'
+	</update>
+	
+ 	<insert id="setslist" parameterType="DataVO">
+		INSERT game_sjoinlist (game_code, user_code) 
+		VALUES (#{game_code}, #{user_code})
+	</insert>
+	
+	
+	<select id="joinlist" resultType="SjoinVO">
+		select *
+		from game_sjoinlist
+		where game_code = #{num}
+	</select>
+	
+	
+	<select id="joininfo" resultType="UinVO">
+		select *
+		from user_abil
+		where user_code = #{userid}
+	</select>
+	
+	<select id="abile" resultType="UinVO">
+		select *
+		from user_abil
+		where user_code = #{usercode}
+	</select>
+	
+	<select id="fieldinfo" resultType="GameFieldInfoVO">
+		select *
+		from gamefield_info
+		where field_code = #{fieldcode}
+	</select>
+	
+	<insert id="newreser" parameterType="GlistVO">
+		INSERT `field_reservation` (`rv_type`,`rv_state`, `field_code`, `field_name`, `field_address`, `field_type`, `user_code`, `user_payment`, `game_day`, `game_time` , `game_code`, `pay_code`, `store_code`,`card_code`) 
+		VALUES('S','신청완료',#{fieldCode}, #{fieldName}, #{fieldAddress}, #{gameMacth}, #{userCode}, 10000, #{gameDay},  STR_TO_DATE(#{gameTime}, '%H'), #{gameCode}, #{payCode}, #{storeCode}, #{cardCode});
+	</insert>
+	
+	<insert id="newresult" parameterType="GlistVO">
+		INSERT 	game_result (`game_code`,`game_type`,`user_code`,`result`)
+		VALUES(#{gameCode},#{gameType},#{userCode},"경기전")
+	</insert>
+	
+	<!-- 마이페이지 경기내역 불러오기 -->
+	<select id="getMatchList" resultType="FieldReservationVO">
+	    SELECT rv_code, rv_state, CASE rv_type WHEN 'S' THEN '소셜매치' WHEN 'TS' THEN '팀매치' ELSE 'NULL' END rv_type,
+        rv_day, field_code, field_name, field_address, field_type, field_rentalfee, user_code, user_payment,
+        game_day, game_time, DATE_FORMAT(game_time, '%H:%i') game_time1, DATE_FORMAT(DATE_ADD(game_time, INTERVAL 2 HOUR), '%H:%i') game_time2 
+        FROM field_reservation
+		WHERE (user_code = #{userCode}) AND (rv_type = 'S' OR rv_type = 'TS')
+		ORDER BY rv_code desc,game_day, game_time
+	</select>
+	
+</mapper>

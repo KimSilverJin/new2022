@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.RankDAO">
+	
+	<update id="plus" parameterType="UinVO">
+	update user_info
+	set user_score = user_score + #{userScore}
+	where user_code = #{userCode}
+	</update>
+	
+	<update id="minus" parameterType="UinVO">
+	update user_info
+	set user_score = user_score - #{userScore}
+	where user_code = #{userCode}
+	</update>
+	
+	<update id="level" parameterType="UinVO">
+	update user_abil
+	set user_level = #{userLevel}
+	where user_code = #{userCode}
+	</update>
+	
+</mapper>

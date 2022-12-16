@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.ManagerDAO">
+	
+	<select id="isManager" resultType="managerVO">
+		SELECT mgr_code, prefer_area, mgr_content, mgr_date, CASE mgr_state WHEN 'TO' THEN '신청완료' WHEN 'RE' THEN '검토중' WHEN 'PASS' THEN '합격' WHEN 'FAIL' THEN '불합격' END mgr_state, user_code
+		FROM manager_history
+		WHERE user_code = #{userCode}
+	</select>
+	
+	<insert id="insertManager">
+		INSERT INTO manager_history (prefer_area, field_code, mgr_content, mgr_date, mgr_state, user_code)
+		VALUES (#{preferArea}, #{fieldCode}, #{mgrContent}, now(), 'TO', #{userCode})
+	</insert>
+	
+	<!-- 관리자 페이지에서 가져오기 -->
+	<select id="managerHistoryList" resultType="managerVO">
+		SELECT mgr_code, prefer_area, mgr_content, mgr_date, CASE mgr_state WHEN 'TO' THEN '신청완료' WHEN 'RE' THEN '검토중' WHEN 'PASS' THEN '합격' WHEN 'FAIL' THEN '불합격' END mgr_state, m.user_code, u.user_name
+		FROM manager_history AS m INNER JOIN user_info AS u
+		ON m.user_code = u.user_code
+		WHERE mgr_state = 'TO'
+	</select>
+	
+	<select id="managerHistoryList2" resultType="managerVO">
+		SELECT mgr_code, prefer_area, mgr_content, mgr_date, CASE mgr_state WHEN 'TO' THEN '신청완료' WHEN 'RE' THEN '검토중' WHEN 'PASS' THEN '합격' WHEN 'FAIL' THEN '불합격' END mgr_state, m.user_code, u.user_name
+		FROM manager_history AS m INNER JOIN user_info AS u
+		ON m.user_code = u.user_code
+		WHERE mgr_state = 'FAIL'
+	</select>
+	
+	<!-- 매니저 등록을하면 user_info에서도 매니저로 변경 -->
+	<update id="managerAdd">
+		UPDATE manager_history AS m INNER JOIN user_info AS u
+		ON m.user_code = u.user_code
+		SET m.mgr_state = 'PASS', u.user_authority = '매니저'
+		WHERE mgr_code = #{mgrCode}
+	</update>
+
+	<update id="managerFail">
+		UPDATE manager_history AS m INNER JOIN user_info AS u
+		ON m.user_code = u.user_code
+		SET m.mgr_state = 'FAIL', u.user_authority = '일반회원'
+		WHERE mgr_code = #{mgrCode}
+	</update>
+	
+	<!-- 관리자페이지 매니저 리스트 -->
+	<select id="getManagerList" resultType="UserVO">
+		SELECT * FROM user_info AS u INNER JOIN manager_history m
+		ON u.user_code = m.user_code
+		WHERE u.user_authority = '매니저'
+	</select>
+	
+	<update id="managerAdd2" parameterType="UserVO">
+		UPDATE user_info SET user_authority = '매니저'
+		WHERE user_code = #{userCode} AND user_id = #{userId}
+	</update>
+	
+	<update id="managerDelete" parameterType="UserVO">
+		UPDATE user_info SET user_authority = '일반회원'
+		WHERE user_code = #{userCode}
+	</update>
+	
+	<update id="isManagerHistory" parameterType="managerVO">
+		UPDATE manager_history SET mgr_state = 'FAIL'
+		WHERE mgr_code = 
+		(SELECT mgr_code FROM manager_history WHERE user_code = #{user_code}) 
+	</update>
+	
+	<select id="getGameFieldInfo" resultType="GameFieldInfoVO">
+		SELECT * FROM gamefield_info
+	</select>
+	
+	<!-- 관리자페이지 매니저 검색 -->
+	<select id="searchManager" resultType="UserVO">
+		SELECT * FROM user_info AS u INNER JOIN manager_history m
+		ON u.user_code = m.user_code
+		WHERE u.user_authority = '매니저' 
+			<if test="userCode != null">
+				AND u.user_code like concat('%',#{userCode},'%')
+			</if>
+			<if test="userId != null">
+				AND user_id like concat('%',#{userId},'%')
+			</if>
+			<if test="userName != null">
+				AND user_name like concat('%',#{userName},'%')
+			</if>
+			<if test="userBirth != null">
+				AND user_birth like concat('%',#{userBirth},'%')
+			</if>
+			<if test="userGender != null">
+				AND user_gender like concat('%',#{userGender},'%')
+			</if>
+			<if test="preferArea != null">
+				AND prefer_area like concat('%',#{preferArea},'%')
+			</if>
+		
+	</select>
+	
+	<select id="getFieldCode" resultType="int" >
+		SELECT field_code
+		FROM gamefield_info
+		WHERE field_name = #{fieldName}
+	</select>
+
+
+	<!-- 소셜게임리스트 -->
+	<select id="sociallist" resultType="GlistVO" parameterType="GlistVO">
+		select game_code,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H:%i') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_pay
+		from gamelist
+		<where>
+			<if test="gameCode != 0">
+				and game_code like CONCAT ('%',#{gameCode},'%')
+			</if>
+			<if test="gameDay != null">
+				and DATE_FORMAT(game_day, '%Y-%m-%d') like  CONCAT ('%',#{gameDay},'%')
+			</if>
+			<if test="gameTime != null">
+				and game_time like  CONCAT ('%',#{gameTime},'%')
+			</if>
+			<if test="gameMag != null">
+				and game_mag like CONCAT ('%',#{gameMag},'%') 
+			</if>
+			<if test="level != null">
+				and level like CONCAT ('%',#{level},'%')
+			</if>
+			<if test="gameMacth != null">
+				and game_macth like CONCAT ('%',#{gameMacth},'%') 
+			</if>
+				and game_type = 's'
+		</where>
+		limit #{num},15
+	</select>
+	
+	
+	<select id="sociallistcnt" resultType="int" parameterType="GlistVO">
+		select COUNT(*)
+		from gamelist
+		<where>
+			<if test="gameCode != 0">
+				and game_code like CONCAT ('%',#{gameCode},'%')
+			</if>
+			<if test="gameDay != null">
+				and DATE_FORMAT(game_day, '%Y-%m-%d') like  CONCAT ('%',#{gameDay},'%')
+			</if>
+			<if test="gameTime != null">
+				and game_time like  CONCAT ('%',#{gameTime},'%')
+			</if>
+			<if test="gameMag != null">
+				and game_mag like CONCAT ('%',#{gameMag},'%') 
+			</if>
+			<if test="level != null">
+				and level like CONCAT ('%',#{level},'%')
+			</if>
+			<if test="gameMacth != null">
+				and game_macth like CONCAT ('%',#{gameMacth},'%') 
+			</if>
+				and game_type = 's'
+		</where>
+		limit #{num},15
+	</select>
+	
+	
+	
+</mapper>
+

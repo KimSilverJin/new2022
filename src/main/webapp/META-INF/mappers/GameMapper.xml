@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.GameDAO">
+	
+	<select id="all" resultType="GlistVO">
+		select select game_code,game_type,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_mag,game_pay
+		from gamelist
+		where game_type = #{gameType}
+		limit 0,15
+	</select>
+	
+	<select id="count" resultType="int">
+		select count(*)
+		from gamelist
+		where game_type = #{gameType}
+	</select>
+	
+	<select id="numlist" resultType="GlistVO" parameterType="GlistVO">
+		select select game_code,game_type,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_mag,game_pay
+		from gamelist
+		where game_type = #{gameType}
+		limit #{userCode},15
+	</select>
+	
+	<select id="searchlist" resultType="GlistVO" parameterType="GlistVO">
+		select select game_code,game_type,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_mag,game_pay
+		from gamelist
+		<where>
+			<if test="gameDay != null">
+				and DATE_FORMAT(game_day, '%Y-%m-%d') like concat('%',#{gameDay},'%')
+			</if>
+			<if test="gameCode != null">
+				and game_code like concat('%',#{gameCode},'%')
+			</if>
+			<if test="gameTime != null">
+				and game_time like concat('%',#{gameTime},'%')
+			</if>
+			<if test="fieldAddress != null">
+				and field_address like concat('%', #{field_address},'%')
+			</if>
+			<if test="gameGender != null">
+				and game_gender like concat('%', #{gameGender},'%')
+			</if>
+			<if test="level != null">
+				and level like concat('%', #{level},'%')
+			</if>
+			<if test="gameMacth != null">
+				and game_macth like concat('%', #{gameMacth},'%')
+			</if>
+			<if test="gameType != null">
+				and game_type like concat('%', #{gameType},'%')
+			</if>
+		</where>
+		limit #{num},15
+	</select>
+	
+	
+	<insert id="sadd" parameterType="GlistVO">
+		INSERT INTO `gamelist` (`game_type`, `field_name`, `field_address`, `field_code`, `game_day`, `game_time`, `level`, `game_gender`, `game_macth`, `close`, `game_minp`, `game_maxp`, `game_pnum`, `game_mag`, `game_pay`) 
+		VALUES ('S', #{fieldName}, #{fieldAddress},#{fieldCode}, #{gameDay}, #{gameTime}, #{level}, #{gameGender}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag}, #{gamePay})
+	</insert>
+	
+	<insert id="tadd" parameterType="GlistVO">
+		INSERT INTO `gamelist` (`game_type`, `field_name`, `field_address`, `field_code`, `game_day`, `game_time`, `level`, `game_gender`, `game_macth`, `close`, `game_minp`, `game_maxp`, `game_pnum`, `game_mag`, `game_pay`,`uteam_pay`) 
+		VALUES ('T', #{fieldName}, #{fieldAddress},#{fieldCode}, #{gameDay}, #{gameTime}, #{level}, #{gameGender}, #{gameMacth}, 'true', 2, #{gameMaxp}, 0, #{gameMag}, #{gamePay}/2,#{gamePay})
+	</insert>
+	
+	<select id="fieldinfo" resultType="gameFieldInfoVO">
+		select *
+		from gamefield_info
+		where field_code = #{fieldCode}
+	</select>
+	
+	<delete id="del">
+		delete from gamelist
+		where game_code = #{gameCode}
+	</delete>
+	
+	<update id="update" parameterType="GlistVO">
+		update gamelist 
+		set game_day = #{gameDay} ,game_time = #{gameTime} , level = #{level} , close = #{close},game_minp = #{gameMinp},game_maxp = #{gameMaxp},game_pnum = #{gamePnum},game_mag = #{gameMag}
+		where game_code = #{gameCode}
+	</update>
+	
+	<delete id="rdel">
+		delete from game_result
+		where result_code = #{resultCode}
+	</delete>
+	
+	<insert id="radd" parameterType="GameResultVO">
+		INSERT INTO `game_result` (`game_code`, `game_type`, `user_code`, `team_code`, `result`, `score`, `assist`) 
+		VALUES (#{gameCode}, #{gameType},#{userCode}, #{teamCode}, #{result}, #{score}, #{assist})
+	</insert>
+	
+	<select id="teamlist" resultType="int">
+		select user_code
+		from user_abil
+		where team_code = #{teamCode}
+	</select>
+	
+	<update id="rup" parameterType="GameResultVO" >
+		update game_result
+		set game_code = #{gameCode}, game_type = #{gameType}, user_code = #{userCode}, team_code = #{teamCode}, result = #{result}, score = #{score}, assist = #{assist}
+		where result_code = #{resultCode}
+	</update>
+	
+	<insert id="newgame" parameterType="GlistVO">
+		INSERT INTO `gamelist` (`game_type`, `field_name`, `field_address`, `field_code`, `game_day`, `game_time`, `level`, `game_gender`, `game_place`, `game_macth`, `close`, `game_minp`, `game_maxp`, `game_pnum`, `game_mag`, `game_magcode`,`game_pay`, `uteam_pay`) 
+		VALUES	('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '08:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL),
+				('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '10:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL),
+				('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '16:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL),
+				('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '20:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL)
+	</insert>
+	
+	<select id="allfieldinfo" resultType="GameFieldInfoVO">
+		select*
+		from gamefield_info
+	</select>
+	
+	<select id="maginfo" resultType="ManagerVO">
+		SELECT m.mgr_code,m.field_code,m.prefer_area,m.mgr_state,m.user_code,i.user_name
+		FROM manager_history m JOIN user_info i
+		ON m.user_code = i.user_code
+		WHERE mgr_state = 'PASS' AND field_code = #{fieldCode}
+		GROUP BY field_code
+	</select>
+	
+	<select id="getcode" resultType="int">
+		 select field_code
+		 from manager_history
+		 where user_code = #{userCode}
+	</select>
+	
+	<select id="getfieldinfo" resultType="GameFieldInfoVO">
+		select *
+		from gamefield_info
+		where field_code = #{fieldCode}
+	</select>
+	
+	
+</mapper>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.ReviewCommentDAO">
+	<select id="selectCommentList" resultType="commentVO">
+		select review_code, user_name, content, date_format(create_date, '%Y-%m-%d %H:%i') create_date
+		from review order by create_date desc LIMIT 10
+	</select>
+	
+	<select id="CommentList" resultType="commentVO">
+		select review_code, user_name, content, date_format(create_date, '%Y-%m-%d %H:%i') create_date
+		from review order by create_date desc LIMIT 10
+	</select>
+
+	<insert id="insertComment" keyProperty="reviewCode">
+		insert into review(user_name, content, user_code) values(#{userName}, #{content}, #{userCode})
+	</insert>
+	
+	<update id="updateComment">
+   		update review SET content = #{content}, create_date = now() WHERE review_code = #{reviewCode}
+	</update>
+	<delete id="deleteComment">
+		delete from review where review_code = #{reviewCode}
+	</delete>
+	<select id="selectComment" resultType="commentVO">
+		select review_code, user_name, content, date_format(create_date, '%Y-%m-%d %H:%i') create_date
+		from review
+		where review_code = #{reviewCode}
+	</select>
+	
+	<select id="countComment" resultType="int">
+		select count(review_code) from review	
+	</select>
+
+
+	<!-- 댓글 페이징 -->
+  	<select id="getCommentList" resultType="commentVO">
+		  		
+		select review_code, user_name, content, date_format(create_date, '%Y-%m-%d %H:%i') create_date, user_code
+		from review
+		where review_code = #{reviewCode}
+		order by create_date desc  		
+  		limit #{skip}, #{amount}
+  		
+  	</select>
+  	
+  	<select id="getCommentTotal" resultType="int">
+  	
+  		select count(*)
+  		from review
+  		where review_code = #{reviewCode}
+  	
+  	</select>
+</mapper>

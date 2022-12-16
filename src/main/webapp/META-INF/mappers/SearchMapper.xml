@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.SearchDAO">
+	<select id="selectAll" resultType="searchVO">
+		SELECT *
+		FROM gamefield_info
+		ORDER BY field_code DESC
+		LIMIT 0,5
+	</select>
+	
+	<select id="selectNum" resultType="searchVO">
+		SELECT field_code, field_name, field_address, field_call, field_rentalfee, 
+		field_type, field_img1, field_img2, field_img3, field_img4, field_img5
+		FROM gamefield_info
+		WHERE field_code = #{field_code}
+	</select>
+	
+	<select id="selectAddress" resultType="searchVO">
+		SELECT field_code, field_name, field_address, field_call, field_rentalfee, 
+		field_type, field_img1, field_img2, field_img3, field_img4, field_img5
+		FROM gamefield_info
+		WHERE field_address = #{field_address}
+	</select>
+	
+	<select id="selectScout" resultType="searchVO">
+		SELECT field_code, field_name 
+		FROM gamefield_info
+		WHERE field_name LIKE CONCAT('%',#{searchText},'%')
+		ORDER BY field_name
+	</select>
+	
+	<!-- <select id="selectRecentList" resultType="recentVO">
+		SELECT search_code, search_data, user_code
+		FROM recent_search WHERE user_code = #{userCode}
+	</select> -->
+	
+	<select id="selectRecentList" resultType="recentVO">
+		SELECT MAX(DISTINCT(search_code)), user_code, search_data
+		FROM recent_search
+		GROUP BY user_code, search_data
+		HAVING  user_code = #{userCode}
+		ORDER BY MAX(search_code) DESC;
+	</select>
+	
+	<insert id="insertRecent">
+		INSERT INTO recent_search (search_data, user_code)
+		VALUES(#{searchData}, #{userCode})
+	</insert>
+	
+	<delete id="deleteRecent">
+		DELETE FROM recent_search 
+		WHERE search_data = #{searchData} AND user_code = #{userCode}
+	</delete>
+	
+	<!-- <delete id="deleteRecent">
+		DELETE FROM recent_search INNER JOIN (SELECT MIN(search_code) AS search_code FROM recent_search  ) 
+		WHERE search_data = #{searchData} AND user_code = #{userCode}
+	</delete> -->
+	
+	
+	
+
+</mapper>
+

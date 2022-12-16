@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.TeamDAO">
+	<select id="list" resultType="TlistVO" parameterType="TlistVO">
+		select game_code,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H:%i') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code
+		from gamelist
+		<where>
+			<if test="gameDay != null">
+				and DATE_FORMAT(game_day, '%Y-%m-%d') = #{gameDay}
+			</if>
+			<if test="gamePlace != null">
+				and field_address like #{gamePlace}
+			</if>
+			<if test="gameGender != null">
+				and game_gender = #{gameGender}
+			</if>
+			<if test="close != null">
+				and close = #{close}
+			</if>
+			<if test="level != null">
+				and level like #{level}
+			</if>
+			<if test="gameMacth != null">
+				and game_macth like #{gameMacth}
+			</if>
+				and game_type = 'T'
+		</where>
+	</select>
+	
+	
+	<select id="info" resultType="TlistVO">
+		select game_code,game_type,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_mag,game_pay
+		from gamelist
+		<where>
+			<if test="close != null">
+				and game_code = #{num}
+			</if>
+			and game_type = 'T'
+		</where>
+	</select>
+	
+	<update id="subgame">
+		UPDATE gamelist 
+		SET game_pnum = game_pnum+1
+		WHERE game_code = #{num} and game_type = 'T'
+	</update>
+	
+	<update id="maxgame">
+		UPDATE gamelist 
+		SET close = 'false',game_pnum = game_pnum+1
+		WHERE game_code = #{num} and game_type = 'T'
+	</update>
+	
+	<insert id="setslist" parameterType="DataVO">
+		INSERT game_tjoinlist (game_code, team_code) 
+		VALUES (#{game_code}, #{team_code})
+	</insert>
+	
+	<select id="abile" resultType="UinVO">
+		select *
+		from user_abil
+		where user_code = #{userCode}
+	</select>
+	
+	<select id="teamcode" resultType="int">
+		SELECT DISTINCT team_code
+		FROM game_tjoinlist
+		WHERE game_code = #{gameCode};
+	</select>
+	
+	<select id="joininfo" resultType="UinVO">
+		select *
+		from user_abil
+		where team_code = #{teamCode}
+	</select>
+	
+	<select id="fieldinfo" resultType="GameFieldInfoVO"> 
+		select * 
+		from gamefield_info 
+		where field_code = #{fieldcode} 
+	</select>
+	
+	<select id="cntmebr" resultType="int">
+		select count(*)
+		from user_abil
+		where team_code = #{teamCode}
+	</select>
+	
+	<select id="selectgen" resultType="int">
+		SELECT  COUNT(DISTINCT user_gender)
+		from user_abil
+		WHERE team_code = #{teamCode} AND ( user_gender = '여성' OR user_gender = '남성');
+	</select>
+	
+	
+	<insert id="newreser" parameterType="TlistVO">
+		INSERT `field_reservation` (`rv_type`, `rv_state`,`field_code`, `field_name`, `field_address`, `field_type`, `user_code`, `team_code`,`user_payment`, `game_day`, `game_time` , `game_code`, `pay_code`, `store_code`,`card_code`) 
+		VALUES('TS','신청완료',#{fieldCode}, #{fieldName}, #{fieldAddress}, #{gameMacth}, #{userCode}, #{teamCode},#{gamePay}, #{gameDay},  STR_TO_DATE(#{gameTime}, '%H'), #{gameCode},#{payCode}, #{storeCode}, #{cardCode});
+	</insert>
+	
+	<insert id="newresult" parameterType="TlistVO">
+		INSERT 	game_result (`game_code`,`game_type`,`user_code`,`team_code`)
+		VALUES(#{gameCode},#{gameType},#{userCode},#{teamCode})
+	</insert>
+	
+	<!-- 팀 등록시 지도 검색 -->
+	<select id="getGameMapWhere" resultType="GameFieldInfoVO">
+		select 
+		field_code, field_name, field_address, field_call, field_rentalfee, field_type,
+		field_img1, field_img2, field_img3, field_img4, field_img5
+		from gamefield_info
+		where field_address LIKE CONCAT ('%',#{address},'%')
+	</select>
+	
+	<!-- 팀 등록시 팀 추가  -->
+	<insert id="insertTeamMember">
+		insert into team_member
+		(team_name, tmember1, tmember2, tmember3, tmember4, tmember5, tmember6, 
+		 user_code1, user_code2, user_code3, user_code4, user_code5, user_code6)
+		values
+		(#{teamName},#{tmember1},#{tmember2},#{tmember3},#{tmember4},#{tmember5},#{tmember6},
+		 #{userCode1},#{userCode2},#{userCode3},#{userCode4},#{userCode5},#{userCode6})
+	</insert>
+	
+	<!-- 추가된 팀 전체 리스트 출력 -->
+	<select id="getTeamList" resultType="TeamMemberVO">
+		select team_code, team_name, tmember1, tmember2, tmember3, tmember4, tmember5, tmember6,
+		user_code1, user_code2, user_code3, user_code4, user_code5, user_code6
+		from team_member
+	</select>
+	
+	<select id="getTeamListWhere" resultType="TeamMemberVO">
+		select team_code, team_name, tmember1, tmember2, tmember3, tmember4, tmember5, tmember6
+		from team_member
+		where team_name LIKE CONCAT ('%',#{teamName},'%')
+	</select>
+	
+	<!-- 팀리스트중 teamName, teamCode 출력 -->
+	<select id="getTeamListTeamCo" resultType="TeamMemberVO">
+		select team_code, team_name
+		from team_member
+		where team_code = #{teamCode}
+	</select>
+	
+	<!-- git DB합치는 과정> matchList 추가  -->
+	
+	<!-- gamelist insert 쿼리 -->
+	<insert id="putTeamMatchGlist" parameterType="GlistVO">
+		insert into gamelist (game_macth, game_gender, field_name, field_address, game_type, game_day, game_time, game_pay, game_minp, game_maxp, game_pnum, game_place, close, field_code, uteam_pay)
+		values (#{gameMacth},#{gameGender}, #{fieldName}, #{fieldAddress}, 'T', #{gameDay}, #{gameTime}, (#{gamePay}-#{uteamPay}), 2, 2, 1, #{gamePlace}, 'true', #{fieldCode},#{uteamPay})
+	</insert>
+	
+	<!-- TjoinList에 insert 하기 -->
+	<select id="getTeamMatchGlist" resultType="int">
+		select game_code
+		from gamelist
+		order by game_code desc limit 1
+	</select>
+	
+	<!-- TjoinList에 insert 하기 -->
+	<select id="getTeamName" resultType="int">
+		select team_code
+		from team_member
+		where team_name = #{mTeamName}
+	</select>
+	
+	<insert id="gameTJoinList">
+		insert into game_tjoinlist(game_code, team_code)
+		values (#{gameCode},#{teamCode})
+	</insert>
+	
+	
+	<!-- 시간 option 유효성 검사.. 제2의 방법 -->
+	<select id="checkTime" resultType="GlistVO">
+		select field_name, game_time, game_day, game_type
+		from gamelist
+		where field_name = #{fieldName} and game_day=#{gameDay}
+	</select>
+	
+	<!-- rentalPayment 이동  game_code, -->
+	<select id="matchInfo" parameterType="GlistVO" resultType="GlistVO">
+	select game_type, game_day, date_format(game_time, '%H') as game_time, game_macth, level, field_address,
+	game_pay, field_name, field_code, uteam_pay
+	from gamelist 
+	where field_code = #{fieldCode}
+	and game_day = #{gameDay} and game_time= #{gameTime} 
+	</select>
+	
+	<!-- 결제 버튼 누를시 reservation table insert -->
+	<insert id="insertFieldRVT" parameterType="FieldReservationVO">
+		insert into field_reservation (rv_type,field_code,field_name,field_address,field_type,field_rentalfee,user_code,user_payment,game_day,game_time,game_code,team_code,pay_code,store_code,card_code)
+		values('T',#{fieldCode},#{fieldName},#{fieldAddress},#{fieldType},#{fieldRentalfee},#{userCode},#{userPayment},#{gameDay},#{gameTime},#{gameCode},#{teamCode},#{payCode},#{storeCode},#{cardCode})
+	</insert>
+	
+	<!-- 팀등록시 로그인한 정보 가져오기 -->
+	<select id="getUserInfo" resultType="UserVO">
+		select user_code, user_id, user_name from user_info
+		where user_id = #{userId}
+	</select>
+	
+	<!-- 정욱 팀 등록시 매퍼사용 -->
+	<select id="getUserList" parameterType="UinVO" resultType="UinVO">
+		select * from user_abil where user_name = #{userName}
+	</select>
+	
+	<!-- 팀 등록시 update용 userAbil-->
+	<update id="updateUserAbil" parameterType="TeamMemberVO">
+		update user_abil set team_code =#{teamCode} , user_group=#{teamName}
+		where user_name =#{tmember1} or user_name =#{tmember2} or
+	user_name =#{tmember3} or user_name =#{tmember4} or
+		user_name =#{tmember5} or user_name=#{tmember6}
+	</update>
+	
+	<update id="upUserAbil" parameterType="UserVO">
+		update user_abil set team_code =#{teamCode},user_group=#{userGroup}
+		where user_code =#{userCode}
+	</update>
+	
+	<!-- 팀등록시 가장 최근 팀등록번호 가져오기 -->
+	<select id="getLastTeamC" resultType="int">
+		select team_code from team_member 
+		order by team_code desc limit 1
+	</select>
+	
+	<!-- 팀 등록시 update용 userAbil-->
+	<update id="updateUserInfo" parameterType="TeamMemberVO">
+		update user_info set team_code =#{teamCode}
+		where user_name =#{tmember1} or user_name =#{tmember2} or
+		user_name =#{tmember3} or user_name =#{tmember4} or
+		user_name =#{tmember5}  or user_name=#{tmember6}
+	</update>
+	
+	
+	<update id="upUserInfo" parameterType="UserVO">
+		update user_info set team_code =#{teamCode}
+		where user_code =#{userCode}
+	</update>
+	
+	
+	
+	<!-- 마이페이지 팀 정보 수정이동시 필요한 정보 -->
+	<!-- 1. user_abil 정보 -->
+	<select id="getAllAbil" resultType="UinVO">
+		select user_code, team_code, user_name, user_gender,
+				user_vr, user_level, user_group
+		from user_abil
+		where user_code =#{userCode}
+	</select>
+	
+	<!-- 2. team_member list 정보 -->
+	<select id="getAllTeamMem" resultType="TeamMemberVO">
+		select team_code, team_name, tmember1, tmember2, tmember3,tmember4, tmember5, tmember6,
+			user_code1, user_code2, user_code3, user_code4, user_code5, user_code6
+			from team_member
+			where team_code=#{teamCode}
+	</select>
+	
+	<!-- 3. teamDatail 이동시 유저정보 불러오기 -->
+	<select id="getAllUserInfo" resultType="UserVO">
+		select user_name, user_code, user_local, team_code, user_email1,user_email2, user_win, user_lose, user_score from user_info
+		where user_id = #{userId}
+	</select>
+	
+	<!-- 4. 팀 전체 해체 -->
+	<update id="updateTNoUserInfo">
+		update user_info set team_code=0
+		where user_name =#{tmember1} or user_name =#{tmember2} or
+		user_name =#{tmember3} or user_name =#{tmember4} or
+		user_name =#{tmember5} or user_name=#{tmember6}
+	</update>
+	
+	<update id="updateTNoUserAbil">
+		update user_abil set team_code=0, user_group=''
+		where user_name =#{tmember1} or user_name =#{tmember2} or
+		user_name =#{tmember3} or user_name =#{tmember4} or
+		user_name =#{tmember5} or user_name=#{tmember6}
+	</update>
+	
+	<delete id="deleteT">
+		delete from team_member
+		where team_code=#{teamCode}
+	</delete>
+	
+	<delete id="dtteamcode">
+		delete from team_member
+		where team_code=#{teamCode}
+	</delete>
+	
+	<update id="dateamcode">
+		update user_abil set team_code=null, user_group=''
+		where team_code=#{teamCode}
+	</update>
+	
+	<update id="diteamcode">
+		update user_info set team_code=null
+		where team_code=#{teamCode}
+	</update>
+	
+	<insert id="outmem" parameterType="TeamMemberVO">
+		insert into team_member
+		(team_code,team_name, tmember1, tmember2, tmember3, tmember4, tmember5, tmember6, 
+		 user_code1, user_code2, user_code3, user_code4, user_code5, user_code6)
+		values
+		(#{teamCode},#{teamName},#{tmember1},#{tmember2},#{tmember3},#{tmember4},#{tmember5},#{tmember6},
+		 #{userCode1},#{userCode2},#{userCode3},#{userCode4},#{userCode5},#{userCode6})
+	</insert>
+	
+	<update id="outinfo">
+		update user_info set team_code=null
+		where user_code=#{userCode}
+	</update>
+	
+	<update id="outabil">
+		update user_abil set team_code=null,user_group=''
+		where user_code=#{userCode}
+	</update>
+	
+	<select id="userVO" resultType="UserVO">
+		select *
+		from user_info
+		where user_code = #{userCode}
+	</select>
+	
+</mapper>

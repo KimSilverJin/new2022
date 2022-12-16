@@ -1,0 +1,285 @@
+* {
+    box-sizing: border-box;
+    margin: 0px;
+}
+
+
+.container {
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.header_container {
+    width: 100%;
+    height: 56px;
+    display: flex;
+    justify-content: center;
+}
+
+.header_area {
+    width: 1024px;
+    height: 100%;
+    padding-top: 15px;
+}
+
+.header_content {
+    display: flex;
+    height: 100%;
+    justify-content: space-between;
+}
+.header_left {
+    width:70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ez_icon {
+    width: 65px;
+    height:35px;
+}
+.search_input {
+    width:375px;
+    height:25px;
+
+}
+.header_right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.big_menu_container {
+    width: 100%;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 13px;
+    margin-top: 13px;
+    
+}
+.big_menu_area {
+    max-width: 1024px;
+    width: 1024px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.big_menu_content {
+    height: 100%;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.big_menu_content a {
+    font-size: 18px;
+    text-decoration: none;
+    color: black;
+    align-items: center;
+    display: flex;
+    width: 90px;
+    justify-content: center;
+}
+
+.menu1,.menu2,.menu3,.menu4,.menu5 {
+    width: 100px;
+    justify-content: center;
+    display: inline-block;
+}
+.menu5_a {
+    font-weight: bold;
+    padding-bottom:5px;
+    border-bottom: 3px solid #0059df;
+}
+
+.banner_container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    background-color: #fafafa;
+}
+.banner_content_area {
+    max-width: 1024px;
+    width:1024px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+.banner_image {
+    width: 100%;
+    height: 90%;
+    border-radius: 23px;
+}
+
+.match_menu_container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #eee;
+}
+
+.match_menu_area {
+    max-width: 1024px;
+    width:1024px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.match_menu_content {
+    width: 100%;
+    height:100%;
+    display:flex;
+    justify-content: center;
+}
+
+/* .date_container {
+    width: 100%;
+    height: 90px;
+}
+.date_nav {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+
+}
+.select_filter {
+    width: 100%;
+    height: 46px;
+} */
+
+.rental_list_container {
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content: center;
+    
+}
+
+.rental_list_area {
+    width: 1024px;
+    max-width: 1024px;
+    height:100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.rental_list_content {
+    width: 100%;
+    height:100%;
+    display:flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.match_list_container {
+    width: 100%;
+    height: 3700px;
+    display: flex;
+    justify-content: center;
+}
+
+.match_menu_area {
+    width: 1024px;
+    max-width: 1024px;
+    height:100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.match_menu_content {
+    width: 100%;
+    height:100%;
+}
+
+
+
+.bottom_banner {
+    width:100%;
+    height:205px;
+    background-color: #cef8e8;
+}
+footer {
+    width: 100%;
+    height: 423px;
+    display: flex;
+    justify-content: space-evenly;   
+    padding: 30px;
+    background-color: #2a2a2a;
+}
+.footer_left {
+    width:40%;
+
+}
+
+.footer_right {
+    width:40%;
+
+}
+
+.login_icon {
+    margin-left:15px;
+}
+.etc_icon {
+    margin-left:10px;
+}
+
+/* ------------------------------ */
+
+.mainpage-post{
+    
+    width: 1024px;
+    display: flex;
+    flex-direction: column;
+}
+.mainpage-post .calender{
+    flex : 1;
+    display: flex;
+    width: 1024px;
+    justify-content: space-between;
+    align-items: center;
+}
+.mainpage-post .settingbutton{
+    flex: 1;
+    display: flex;
+    width: 1024px;
+}
+.mainpage-post .date ul{
+   
+   list-style-type: none;
+}
+.mainpage-post .date ul li{
+    display: inline-block;
+    width: 100px;
+    height: 50px;
+    text-align: center;
+}
+.mainpage-post .date ul li a{
+    text-decoration: none;
+}
+.mainpage-post .date ul li:hover{
+   background-color: blue;
+}
+
+.reviewcome {
+    max-width: 1024px;
+    width: 1024px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+  
+}
+
+#comment>p{
+	color: #0059df;
+    background-color: aquamarine;
+}

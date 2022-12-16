@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.SubDAO">
+	
+	<delete id="delete" parameterType="DataVO">
+		UPDATE field_reservation
+		SET rv_state = '신청취소', cancel_day = now()
+		WHERE game_code = #{gameCode} AND team_code = #{teamCode}
+	</delete>
+	
+	<delete id="rdelete">
+		UPDATE field_reservation
+		SET rv_state = '신청취소', cancel_day = now()
+		WHERE rv_code = #{rvCode}
+	</delete>
+	
+	<delete id="sdelete" parameterType="DataVO">
+		DELETE FROM game_sjoinlist
+		WHERE game_code = #{gameCode} AND user_code = #{userCode}
+	</delete>
+	
+	<delete id="tdelete" parameterType="DataVO">
+		DELETE FROM game_tjoinlist
+		WHERE game_code = #{gameCode} AND team_code = #{teamCode}
+	</delete>
+	
+	<update id="delupdate">
+		UPDATE gamelist
+		SET game_pnum = game_pnum - 1
+		WHERE game_code = #{gameCode}
+	</update>
+	
+	<select id="all" resultType="GlistVO">
+		select*
+		from gamelist
+		where game_code = #{gameCode}
+	</select>
+	
+	<insert id="add" parameterType="GlistVO">
+		INSERT INTO `field_reservation` (`rv_type`, `rv_state`, `field_code`, `field_name`, `field_address`, `field_type`, `field_rentalfee`, `user_code`, `team_code`, `user_payment`, `game_day`, `game_time`, `game_code`,`pay_code`,`store_code`,`cancel_day`) 
+		VALUES ('S', '신청완료', #{fieldCode}, #{fieldName}, #{fieldAddress}, #{gameMacth}, NULL, #{userCode}, NULL, 10000, #{gameDay}, #{gameTime}, #{gameCode},'강제추가','강제추가',now())
+	</insert>
+	
+	<insert id="slistadd" parameterType="GlistVO">
+		insert into game_sjoinlist (game_code,user_code)
+		values(#{gameCode},#{userCode})
+	</insert>
+	
+	<update id="supdate">
+		UPDATE gamelist
+		SET game_pnum = game_pnum+1
+		WHERE game_code = #{gameCode}
+	</update>
+	
+	
+	<select id="usercode" resultType="int">
+		SELECT DISTINCT user_code
+		FROM user_info
+		WHERE team_code = #{teamCode}
+	</select>
+	
+	<insert id="tadd" parameterType="GlistVO">
+		INSERT INTO `field_reservation` (`rv_type`, `rv_state`, `field_code`, `field_name`, `field_address`, `field_type`, `field_rentalfee`, `user_code`, `team_code`, `user_payment`, `game_day`, `game_time`, `game_code`,`pay_code`,`store_code`,`cancel_day`) 
+		VALUES ('TS', '신청완료', #{fieldCode}, #{fieldName}, #{fieldAddress}, #{gameMacth}, NULL, #{userCode}, #{teamCode}, 10000, #{gameDay}, #{gameTime}, #{gameCode},'강제추가','강제추가',now())
+	</insert>
+		
+	<insert id="tlistadd" parameterType="GlistVO">
+		insert into game_tjoinlist (game_code,team_code)
+		values(#{gameCode},#{teamCode})
+	</insert>
+	
+	<update id="tupdate">
+		UPDATE gamelist
+		SET game_pnum = game_pnum+1
+		WHERE game_code = #{gameCode}
+	</update>
+	
+	<insert id="newresult" parameterType="GlistVO">
+		INSERT INTO `game_result` (`game_code`, `game_type`, `user_code`, `team_code`, `result`, `score`, `assist`) 
+		VALUES (#{gameCode}, #{gameType},#{userCode}, #{teamCode}, 0, 0, 0)
+	</insert>
+	
+</mapper>

@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.RentalDAO">
+	<select id="rvListAll" resultType="GlistVO" parameterType="GlistVO">
+		select game_code,game_type,field_name,GROUP_CONCAT(DATE_FORMAT(game_time, '%H') ORDER BY game_time asc)as game_time,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,field_code,
+		game_macth,game_place,close,game_pnum,game_mag,
+		field_address,game_minp,game_maxp
+		from gamelist
+		<where>
+			<if test="gameDay != null">
+				and DATE_FORMAT(game_day, '%Y-%m-%d') = #{gameDay}
+			</if>
+			<if test="gamePlace != null">
+				and game_place = #{gamePlace}
+			</if>
+			<if test="close != null">
+				and close = #{close}
+			</if>
+			<if test="gameMacth != null">
+				and game_macth = #{gameMacth}
+			</if>
+		</where>
+		GROUP BY field_name, game_day
+	</select>
+	
+<!-- 	<select id="selectTime" resultType="GlistVO"> -->
+<!-- 		select field_name,GROUP_CONCAT(DATE_FORMAT(game_time, '%H')) as game_day from gamelist -->
+<!-- 			<where> -->
+<!-- 				<if test="gameDay != null"> -->
+<!-- 					and DATE_FORMAT(game_day, '%Y-%m-%d') = #{gameDay} -->
+<!-- 				</if> -->
+<!-- 				<if test="fieldName != null"> -->
+<!-- 					and field_name = #{fieldName} -->
+<!-- 				</if> -->
+<!-- 			</where> -->
+<!-- 	</select> -->
+
+	<select id="fieldInfo" resultType="gameFieldInfoVO">
+		select field_code,game_place,field_name,field_address,field_rentalfee,field_type,
+		field_img1,field_img2,field_img3,field_img4,field_img5,field_size,
+		field_in_out,field_grass
+		from gamefield_info where field_code = #{fieldCode}
+	</select>
+	
+<!-- 	<select id="matchInfo" resultType="GlistVO"> -->
+<!-- 		select game_code, game_day, game_time, game_macth,level -->
+<!-- 		from gamelist where field_code = #{fieldCode} -->
+<!-- 	</select> -->
+	
+	<!-- 마이페이지 구장예약 내역 불러오기 -->
+	<select id="getFieldReservation" resultType="FieldReservationVO">
+	    SELECT rv_code, rv_state, CASE rv_type WHEN 'G' THEN '구장예약' WHEN 'T' THEN '팀매치' ELSE 'NULL' END rv_type,
+        rv_day, field_code, field_name, field_address, field_type, field_rentalfee, user_code, user_payment,
+        game_day, game_time, DATE_FORMAT(game_time, '%H:%i') game_time1, DATE_FORMAT(DATE_ADD(game_time, INTERVAL 2 HOUR), '%H:%i') game_time2 
+        FROM field_reservation
+		WHERE (user_code = #{userCode}) AND (rv_type = 'G' OR rv_type = 'T')
+		ORDER BY rv_code desc,game_day, game_time
+	</select>
+	
+	
+	<select id="rvListSelect" resultType="GlistVO">
+		select game_code,game_type,field_name,GROUP_CONCAT(DATE_FORMAT(game_time, '%H') ORDER BY game_time asc)as game_time,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,field_code,
+		game_macth,game_place,close,game_pnum,game_mag,
+		field_address,game_minp,game_maxp
+		from gamelist
+		<where>
+			<if test="fieldCode != null">
+				and field_code = #{fieldCode}
+			</if>
+			<if test="gameDay != null">
+				and DATE_FORMAT(game_day, '%Y-%m-%d') = #{gameDay}
+			</if>
+		</where>
+				GROUP BY field_name, game_day
+	</select>
+	
+	<select id="rvCheck" resultType="int">
+		select count(*) from field_reservation
+		where user_code = #{userCode}
+		and field_code = #{fieldCode}
+		and game_day = #{gameDay}
+		and game_time = #{gameTime}
+		and rv_state = '예약완료'
+	</select>
+<!-- 	<select id="rvCheck" resultType="int"> -->
+<!-- 		select count(*) from field_reservation -->
+<!-- 		where user_code = #{userCode} -->
+<!-- 		and field_code = #{fieldCode} -->
+<!-- 		and game_day = #{gameDay} -->
+<!-- 		and game_time = #{gameTime} -->
+<!-- 	</select> -->
+
+	<insert id="insertFieldReservation">
+		insert into field_reservation (rv_type,field_code,field_name,field_address,field_type,field_rentalfee,user_code,game_day,game_time,game_code,game_place,pay_code,store_code,user_payment,card_code)
+		values(#{rvType},#{fieldCode},#{fieldName},#{fieldAddress},#{fieldType},#{fieldRentalfee},#{userCode},#{gameDay},#{gameTime},#{gameCode},#{gamePlace},#{payCode},#{storeCode},#{userPayment},#{cardCode})
+	</insert>
+	<insert id="insertRvInGameList" keyProperty="gameCode">
+		insert into gamelist (game_type,field_code,field_name,field_address,game_day,game_time,game_macth,game_place)
+		values(#{rvType},#{fieldCode},#{fieldName},#{fieldAddress},#{gameDay},#{gameTime},#{fieldType},#{gamePlace});
+	</insert>
+	
+	
+	<!--    구장관리 (수정,삭제)    -->
+	<select id="getFieldListAll" resultType="GameFieldInfoVO">
+		select * from gamefield_info ORDER BY field_code DESC
+	</select>
+	
+	<update id="modifyField" parameterType="GameFieldInfoVO">
+		update gamefield_info
+		<set>
+			<if test="fieldName != null">
+				 field_name = #{fieldName}
+			</if>
+			<if test="fieldAddress != null">
+				,field_address = #{fieldAddress}
+			</if>
+			<if test="fieldType != null">
+				,field_type = #{fieldType}
+			</if>
+			<if test="fieldCall != null">
+				,field_call = #{fieldCall}
+			</if>
+			<if test="fieldRentalfee != null">
+				,field_rentalfee = #{fieldRentalfee}
+			</if>
+			<if test="fieldGrass != null">
+				,field_grass = #{fieldGrass}
+			</if>
+			<if test="fieldInOut != null">
+				,field_in_out = #{fieldInOut}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img1 = #{fieldImg1}
+			</if>
+			<if test="fieldImg2 != null">
+				,field_img2 = #{fieldImg2}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img3 = #{fieldImg3}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img4 = #{fieldImg4}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img5 = #{fieldImg5}
+			</if>
+		</set>
+		where field_code = #{fieldCode}
+	</update>
+	
+	<update id="modifyGamelist" parameterType="GlistVO">
+		update gamelist
+		<set>
+			<if test="fieldName != null">field_name = #{fieldName}</if>
+			<if test="fieldAddress != null">,field_address = #{fieldAddress}</if>
+			<if test="gameMacth != null">,game_macth = #{gameMacth}</if>
+		</set>
+		where field_code = #{fieldCode}
+	</update>
+	
+	<update id="modifyReservation" parameterType="FieldReservationVO">
+		update field_reservation
+		<set>
+			<if test="fieldName != null">field_name = #{fieldName}</if>
+			<if test="fieldAddress != null">,field_address = #{fieldAddress}</if>
+			<if test="fieldType != null">,field_type = #{fieldType}</if>
+		</set>
+		where field_code = #{fieldCode}
+	</update>
+	
+	<delete id="deleteSelectField">
+		delete from gamefield_info where field_code = #{fieldCode}
+	</delete>
+	<delete id="deleteSelectFieldInGamelist">
+		delete from gamelist where field_code = #{fieldCode}
+	</delete>
+	
+	<select id="selectFieldData" resultType="GameFieldInfoVO">
+		select * from gamefield_info where field_code = #{fieldCode}
+		<!--
+		select * from gamefield_info where field_code in
+		 <foreach> 
+		#{fieldCode}
+		</foreach> -->
+	</select>
+	
+	<select id="selectFieldImage" resultType="String">
+		select field_img1,field_img2,field_img3,field_img4,field_img5 from gamefield_info where field_code = #{fieldCode}
+	</select>
+	
+	
+	<!-- 구장 추가 -->
+	<insert id="insertFieldInfo" parameterType="GameFieldInfoVO" keyProperty="fieldCode">
+		insert into gamefield_info (game_place,field_name,field_address,field_call,field_rentalfee,field_type,field_img1,field_img2,field_img3,field_img4,field_img5,field_size,field_in_out,field_grass) 
+		values(#{gamePlace},#{fieldName},#{fieldAddress},#{fieldCall},#{fieldRentalfee},#{fieldType},#{fieldImg1},#{fieldImg2},#{fieldImg3},#{fieldImg4},#{fieldImg5},#{fieldSize},#{fieldInOut},#{fieldGrass})
+	</insert>
+	
+	<select id="getfieldinfo" resultType="GameFieldInfoVO">
+		select *
+		from gamefield_info
+		where field_code = #{fieldCode}
+	</select>
+	
+	<insert id="newgame" parameterType="GlistVO">
+		INSERT INTO `gamelist` (`game_type`, `field_name`, `field_address`, `field_code`, `game_day`, `game_time`, `level`, `game_gender`, `game_place`, `game_macth`, `close`, `game_minp`, `game_maxp`, `game_pnum`, `game_mag`, `game_magcode`,`game_pay`, `uteam_pay`) 
+		VALUES	('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '08:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL),
+				('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '10:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL),
+				('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '16:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL),
+				('S', #{fieldName}, #{fieldAddress}, #{fieldCode}, #{gameDay}, '20:00:00', '프로1', '남성', #{gamePlace}, #{gameMacth}, 'true', #{gameMinp}, #{gameMaxp}, 0, #{gameMag},#{gameMagcode}, 10000, NULL)
+	</insert>
+	
+	<!-- 구장 예약 현황 List -->
+	<select id="GFieldReservationList" resultType="FieldReservationVO">
+		select a.rv_code, a.rv_type, a.rv_day, a.field_name, a.field_type, a.field_rentalfee, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code
+		where a.rv_type = 'G' and a.rv_state='예약완료'
+		ORDER BY a.rv_code DESC
+	</select>
+	
+	<!-- 구장예약 취소시 예약롼료->예약취소로 수정 -->
+	<update id="updateFieldReservation" parameterType="String">
+		update field_reservation set rv_state='예약취소' where game_code = #{gameCode}
+	</update>
+	<!-- 구장예약 취소시 해당 gamelist 삭제 -->
+	<delete id="deleteFieldGamelist">
+		delete from gamelist where game_code = #{gameCode}
+	</delete>
+	<!-- 구장 취소 현황 리스트 -->
+	<select id="GCancelList" resultType="FieldReservationVO">
+		select a.rv_code, a.rv_type, a.rv_day, a.field_name, a.field_type, a.field_rentalfee, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code
+		where a.rv_type = 'G' and a.rv_state='예약취소'
+		ORDER BY a.rv_code DESC
+	</select>
+	
+	
+	<!-- 결제 내역 List 출력 -->
+	<select id="FieldReservationListAll" resultType="FieldReservationVO">
+		select a.rv_code, a.rv_state, a.rv_type, a.rv_day,a.field_code, a.field_name, a.field_rentalfee, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name, a.pay_code,a.card_code,a.user_payment,a.refund_state 
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code
+		where a.rv_state='예약완료' or a.rv_state='신청완료' or a.rv_state='취소신청'
+		ORDER BY a.refund_state ASC, a.rv_code DESC
+	</select>
+	<!-- 환불 내역 List 출력 -->
+	<select id="FieldRefundListAll" resultType="FieldReservationVO">
+		select a.rv_code, a.rv_state, a.rv_type, a.rv_day,a.field_code, a.field_name, a.field_rentalfee, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name, a.pay_code,a.card_code,a.user_payment,date_format(a.cancel_day, '%Y.%m.%d %T') as cancel_day
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code
+		where a.rv_state = '예약취소' or a.rv_state='신청취소' 
+		ORDER BY a.cancel_day DESC
+	</select>
+	<!-- 취소하기 위해 rv_code값으로 rv_type값 뽑기 -->
+	<select id="selectRvType" resultType="String">
+		select rv_type from field_reservation
+		where rv_code = #{rvCode}
+	</select>
+	<!-- 팀 취소하기 위해 rv_code값으로 gameCode값 뽑기 -->
+	<select id="selectGameCode" resultType="String">
+		select game_code from field_reservation
+		where rv_code = #{rvCode}
+	</select>
+	<!-- 팀 취소하기 위해 rv_code값으로 teamCode값 뽑기 -->
+	<select id="selectTeamCode" resultType="String">
+		select team_code from field_reservation
+		where rv_code = #{rvCode}
+	</select>
+	<!-- 팀매치 일괄 결제 취소 -->
+	<update id="TeamFieldReservationCancelUpdate" parameterType="DataVO">
+		update field_reservation
+		set rv_state = "신청취소", cancel_day = now()
+		where game_code =#{gameCode} and team_code = #{teamCode}
+	</update>
+	<!-- 팀구장예약 일괄 결제 취소 -->
+	<update id="TGRCancelUpdate" parameterType="String">
+		update field_reservation
+		set rv_state = "예약취소", cancel_day = now()
+		where game_code =#{gameCode}
+	</update>
+	
+	<!-- 결제내역 관리에서 게임신청에 대한 강제 결제 취소시 -->
+	<update id="GameSignUpCancelUpdate">
+		update field_reservation
+		<set>
+			<if test="rvCode != null">rv_state = '신청취소'</if>
+			,cancel_day = now()
+		</set>
+		where rv_code = #{rvCode} and (rv_state = '신청완료' or rv_state = '취소신청')
+	</update>
+	<!-- 결제내역 관리에서 구장예약 팀 구장예약에 대한 강제 결제 취소시 -->
+	<update id="payCancelUpdate">
+		update field_reservation
+		<set>
+			<if test="rvCode != null">rv_state = '예약취소'</if>
+				,cancel_day = now()
+		</set>
+		where rv_code = #{rvCode} and (rv_state = '예약완료'  or rv_state = '취소신청')
+	</update>
+	
+	<!-- 환불 -->
+	<update id="refund">
+		update field_reservation
+		set rv_state = '취소신청' ,refund_state ='C'
+		where rv_code = #{rvCode}
+	</update>
+	
+</mapper>

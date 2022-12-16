@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.InquiryDAO">
+	
+	<select id="InquiryAll" resultType="inquiryVO">
+		SELECT inquiry_code, inquiry_title, inquiry_content, CASE inquiry_state WHEN 'TO' THEN '답변대기' WHEN 'RE' THEN '답변완료' ELSE 'NULL' END inquiry_state, create_date, answer_date, answer_content, user_code
+		FROM inquiry
+		WHERE user_code = #{userCode}
+		<if test="inquiryState != null">
+			and inquiry_state = #{inquiryState}
+		</if>
+	</select>
+	
+	<select id="InquiryAll2" resultType="inquiryVO">
+		SELECT inquiry_code, inquiry_title, inquiry_content, CASE inquiry_state WHEN 'TO' THEN '답변대기' WHEN 'RE' THEN '답변완료' ELSE 'NULL' END inquiry_state, create_date, answer_date, answer_content, user_code
+		FROM inquiry
+		WHERE user_code = #{userCode}
+	</select>
+	
+	<select id="InquiryDetail" resultType="inquiryVO">
+		SELECT inquiry_code, inquiry_title, inquiry_content, CASE inquiry_state WHEN 'TO' THEN '답변대기' WHEN 'RE' THEN '답변완료' ELSE 'NULL' END inquiry_state, create_date, answer_date, answer_content, user_code 
+		FROM inquiry
+		WHERE inquiry_code = #{inquiryCode}
+	</select>
+	
+	<!-- 관리자페이지에서 조회 -->
+	<select id="InquiryListAdmin" resultType="inquiryVO">
+		SELECT inquiry_code, inquiry_title, inquiry_content, CASE inquiry_state WHEN 'TO' THEN '답변대기' WHEN 'RE' THEN '답변완료' ELSE 'NULL' END inquiry_state, create_date, answer_date, answer_content, i.user_code, u.user_name
+		FROM inquiry AS i INNER JOIN user_info AS u
+		ON i.user_code = u.user_code
+		WHERE NOT inquiry_code = ""
+<!-- 			<if test="inquiryState != null"> -->
+<!-- 				AND inquiry_state = #{inquiryState} -->
+<!-- 			</if> -->
+			<if test="inquiryCode != 0 and inquiryCode != null">
+				AND inquiry_code like concat('%',#{inquiryCode},'%')
+			</if>
+			<if test="inquiryTitle != null">
+				AND inquiry_title like concat('%',#{inquiryTitle},'%')
+			</if>
+			<if test="createDate != null">
+				AND create_date like concat('%',#{createDate},'%')
+			</if>
+			<if test="userCode != null">
+				AND i.user_code like concat('%',#{userCode},'%')
+			</if>
+	</select>
+	
+	<!-- 문의 작성 -->
+	<update id="InquiryAdd" parameterType="inquiryVO">
+		INSERT INTO inquiry (inquiry_title, inquiry_content, inquiry_state, create_date, user_code)
+		VALUES (#{inquiryTitle}, #{inquiryContent}, 'TO', now(), #{userCode})
+	</update>
+	
+	<update id="InquiryAdd2" parameterType="inquiryVO">
+		UPDATE inquiry SET answer_content = #{answerContent}, answer_date = now(), inquiry_state = 'RE'
+		WHERE inquiry_code = ${inquiryCode}
+	</update>
+</mapper>

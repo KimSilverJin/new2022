@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.BlacklistDAO">
+
+<select id ="codelist" resultType="UserVO">
+	select f1.user_code, f1.user_name
+	from game_result f0
+	join user_info f1 on f1.user_code=f0.user_code
+	where f0.game_code=(select game_code from game_result where user_code= #{userCode} order by result_code desc limit 1)
+	and f0.user_code!= #{userCode}
+</select>
+	
+	
+
+	<!-- Maria -->
+	<!-- 게시물 목록(페이징) -->
+
+	<select id="getListPaging" resultType="BlacklistVO">
+		select blacklist_code, user_id, buser_name, blacklist_title,
+		blacklist_content, blacklist_local, blackuser_code,
+		date_format(blacklist_create_date, '%Y-%m-%d %H:%i')
+		blacklist_create_date
+		from blacklist
+		where is_delete = 0
+		order by blacklist_code desc
+		<!-- limit ((${pageNum}-1)*${amount}), ${amount} -->
+		limit #{skip},#{amount}
+	</select>
+
+	<!-- 게시물 총 개수 -->
+	<select id="getTotal" resultType="int">
+		select count(*) from blacklist;
+	</select>
+
+	<!-- 블랙리스트 유저 체크 0이면 쓸수 있고 0이 아니면 못쓰고-->
+	<select id="blackCheck" resultType="int">
+		select count(*) from blacklist where user_code= #{userCode} and
+		blackuser_code = #{blackuserCode};
+	</select>
+
+	<select id="selectBlackList" resultType="BlacklistVO">
+		select blacklist_code,
+		user_id, buser_name, blacklist_title, blacklist_content,
+		blacklist_local,
+		date_format(blacklist_create_date, '%Y-%m-%d %H:%i')
+		blacklist_create_date, blackuser_code
+		from blacklist
+		where is_delete = 0
+		order by blacklist_code desc
+		limit #{start}, #{cntPerPage}
+	</select>
+	
+	<select id="searchBlackList" resultType="BlacklistVO">
+		select blacklist_code,
+		user_id, buser_name, blacklist_title, blacklist_content,
+		blacklist_local,
+		date_format(blacklist_create_date, '%Y-%m-%d %H:%i')
+		blacklist_create_date, blackuser_code
+		from blacklist
+		where blacklist_local = #{blacklistLocal} and is_delete = 0
+		order by blacklist_code desc
+		limit #{start}, #{cntPerPage}
+	</select>
+	
+
+	<select id="selectBlackListdetail" resultType="BlacklistVO">
+		select
+		blacklist_code, user_id, buser_name, blacklist_title,
+		blacklist_content, blacklist_local,
+		date_format(blacklist_create_date,
+		'%Y-%m-%d %H:%i') blacklist_create_date, blackuser_code
+		from blacklist
+		where is_delete = 0
+		and blacklist_code = #{blacklistCode}
+	</select>
+
+	<select id="selectBlackuserCode">
+		select blackuser_code
+		from blacklist
+		where is_delete =
+		0
+	</select>
+
+	<insert id="insertBlackList">
+		insert into blacklist(blacklist_local,
+		blacklist_title, user_id, buser_name, blacklist_content, user_code,
+		blackuser_code)
+		values(#{blacklistLocal}, #{blacklistTitle}, #{userId},
+		#{buserName}, #{blacklistContent}, #{userCode}, #{blackuserCode})
+	</insert>
+
+	<update id="updateBlackList">
+		update blacklist set blacklist_local =
+		#{blacklistLocal}, blacklist_title= #{blacklistTitle},
+		blacklist_content=#{blacklistContent}, blackuser_code=#{blackuserCode}
+		where blacklist_code = #{blacklistCode} and user_code = #{userCode}
+	</update>
+
+	<update id="adduserBlack">
+		update user_info set user_reports = user_reports+1
+		WHERE user_code = #{blackuserCode}
+	</update>
+
+	<update id="deleteBlackList">
+		update blacklist set is_delete = 1
+		where blacklist_code = #{blacklistCode} and user_code = #{userCode}
+	</update>
+
+	<update id="deleteuserBlack">
+		update user_info set user_reports = user_reports-1
+		WHERE user_code = #{blackuserCode}
+	</update>
+
+	<select id="selectBlackListComment"
+		resultType="BlacklistcommentVO">
+		select comment_code, black_code, user_code, user_name,
+		content,
+		date_format(bcoment_create_date, '%Y-%m-%d %H:%i') bcoment_create_date, order_code
+		from
+		blacklist_comment
+		where is_delete = 0
+		and black_code = #{blackCode}
+	</select>
+
+	<insert id="insertBlackListComment" keyProperty="commentCode">
+		insert into
+		blacklist_comment (black_code, user_code, user_name, content)
+		values
+		(#{blackCode},#{userCode},#{userName},#{content});
+	</insert>
+
+	<select id="selectComment" resultType="BlacklistcommentVO">
+		select comment_code,
+		user_name, content, user_code, date_format(bcoment_create_date,
+		'%Y-%m-%d %H:%i') bcoment_create_date,
+		from blacklist_comment
+		where
+		comment_code = #{commentCode}
+	</select>
+
+	<update id="updateBlackListComment">
+		update blacklist_comment set content = #{content},
+		bcoment_create_date = now()
+		where comment_code = #{commentCode}
+	</update>
+
+	<update id="deleteBlackListComment">
+		delete from blacklist_comment where comment_code =
+		#{commentCode}
+	</update>
+</mapper>

@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sample.dao.AdminDAO">
+	<!-- 취소 신청 가져오기 -->
+	<select id="refundsub" resultType="int">
+		select count(*)
+		from field_reservation
+		where rv_state = '취소신청'
+	</select>
+
+	<!-- 신청 관리 -->
+	<select id="allgame" resultType="GlistVO">
+		select game_code,game_type,game_day,game_gender,
+		DATE_FORMAT(game_time, '%H') AS game_time,level,
+		game_macth,game_place,close,game_pnum,game_mag,field_name,
+		field_address,game_minp,game_maxp,field_code,game_mag,game_pay
+		from gamelist
+		where game_type ='S' OR game_type ='T'
+	</select>
+	
+	<select id="alluser" resultType="UserVO">
+		select *
+		from user_info
+	</select>
+	
+	<select id="stgame" resultType="FieldReservationVO">
+		SELECT rv_code,rv_type,rv_day,rv_state,field_code,field_name,field_address,field_type,field_rentalfee,user_code, team_code,user_payment,game_day,game_time,game_code
+		FROM field_reservation
+		WHERE rv_type = 'TS' and rv_state = '신청완료'
+		GROUP BY team_code,game_code
+		order by rv_code desc
+	</select>
+	
+	<select id="sgame" resultType="FieldReservationVO">
+		select *
+		from field_reservation
+		where rv_type = 'S' and rv_state = '신청완료'
+		order by rv_code desc
+	</select>
+	
+	<select id="cgame" resultType="FieldReservationVO">
+		select *
+		from field_reservation
+		where (rv_type = 'S' or rv_type = 'TS') and rv_state = '신청취소'
+		order by cancel_day desc
+	</select>
+	
+	<select id="teamcode" resultType="int">
+		SELECT DISTINCT team_code
+		FROM user_info
+		WHERE team_code is NOT NULL
+	</select>
+	
+	
+	<!-- 경기관리 -->
+	<select id="allfield" resultType="gameFieldInfoVO">
+		select *
+		from gamefield_info
+	</select>
+	
+	<select id="result" resultType="GameResultVO">
+		select *
+		from game_result
+	</select>
+	
+	<!-- 랭킹관리 -->
+	<select id="rankall" resultType="UinVO">
+		SELECT i.user_code, i.team_code, i.user_name, a.user_level, i.user_gender, i.user_score
+		FROM user_info i JOIN user_abil a
+		ON i.user_code = a.user_code
+	</select>
+	
+	
+	
+	
+	
+	<!-- 팀 매치 예약 현황 -->
+	<select id="Tgame" resultType="FieldReservationVO">
+		select *
+		from field_reservation
+		where rv_type = 'T';
+	</select>
+	
+	<select id="joinList" resultType="FieldReservationVO">
+		select a.rv_code, a.rv_day, a.field_name, a.field_type, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code 
+		where a.rv_type = 'T' and a.rv_state = '예약완료'
+		ORDER BY a.rv_code DESC
+	</select>
+	
+	<select id="joinList1" resultType="FieldReservationVO" parameterType="FieldReservationVO">
+		select a.rv_code, a.rv_day, a.field_name, a.field_type, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code 
+		where a.rv_type = 'T' and a.rv_state = '예약완료'
+
+			<if test="userName != null">
+				and b.user_name like concat('%',#{userName},'%')
+			</if>
+			<if test="srvCode != null">
+				and a.rv_code like concat('%',#{srvCode},'%')
+			</if>
+			<if test="rvDay != null">
+				and a.rv_day like concat('%',#{rvDay},'%')
+			</if>
+			<if test="fieldName != null">
+				and a.field_name like concat('%',#{fieldName},'%')
+			</if>
+			<if test="gameDay != null">
+				and a.game_day like concat('%',#{gameDay},'%')
+			</if>
+			<if test="fieldType != null">
+				and a.field_type like concat('%',#{fieldType},'%')
+			</if>
+			<if test="suserCode != null">
+				and a.user_code like concat('%',#{suserCode},'%')
+			</if>
+			<if test="sgameCode != null">
+				and a.game_code like concat('%',#{sgameCode},'%')
+			</if>
+
+		ORDER BY a.rv_code DESC
+	</select>
+	
+	<!-- 팀예약 삭제 mapper - gamelist, field_reservation 모두 삭제-->
+	<delete id="TdeleteG" parameterType="int">
+		DELETE 
+		FROM gamelist
+		WHERE game_code = #{gameCode}
+	</delete>
+	
+	<delete id="TdeleteF">
+		Delete
+		FROM field_reservation
+		WHERE game_code = #{gameCode}
+	</delete>
+	
+	<update id="TupdateF" parameterType="int">
+		update field_reservation
+		set rv_state = '예약취소',cancel_day = now()
+		WHERE game_code = #{gameCode}
+	</update>
+	
+	<!-- 팀예약 삭제시 출력 리스트 -->
+	<select id="joinList2" resultType="FieldReservationVO">
+		select a.rv_code, a.rv_day, a.field_name, a.field_type, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code 
+		where a.rv_type = 'T' and a.rv_state = '예약취소'
+		ORDER BY a.rv_code DESC
+	</select>
+	
+	<select id="joinList3" resultType="FieldReservationVO" parameterType="FieldReservationVO">
+		select a.rv_code, a.rv_day, a.field_name, a.field_type, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code 
+		where a.rv_type = 'T' and a.rv_state = '예약취소'
+
+			<if test="userName != null">
+				and b.user_name like concat('%',#{userName},'%')
+			</if>
+			<if test="srvCode != null">
+				and a.rv_code like concat('%',#{srvCode},'%')
+			</if>
+			<if test="rvDay != null">
+				and a.rv_day like concat('%',#{rvDay},'%')
+			</if>
+			<if test="fieldName != null">
+				and a.field_name like concat('%',#{fieldName},'%')
+			</if>
+			<if test="gameDay != null">
+				and a.game_day like concat('%',#{gameDay},'%')
+			</if>
+			<if test="fieldType != null">
+				and a.field_type like concat('%',#{fieldType},'%')
+			</if>
+			<if test="suserCode != null">
+				and a.user_code like concat('%',#{suserCode},'%')
+			</if>
+			<if test="sgameCode != null">
+				and a.game_code like concat('%',#{sgameCode},'%')
+			</if>
+
+		ORDER BY a.rv_code DESC
+	</select>
+	
+
+	
+	<!-- 구장관리 (수정,삭제) -->
+	<select id="getFieldListAll" resultType="GameFieldInfoVO">
+		select * from gamefield_info
+	</select>
+	
+	<update id="modifyField" parameterType="GameFieldInfoVO">
+		update gamefield_info
+		<set>
+			<if test="fieldName != null">
+				 field_name = #{fieldName}
+			</if>
+			<if test="fieldAddress != null">
+				,field_address = #{fieldAddress}
+			</if>
+			<if test="fieldType != null">
+				,field_type = #{fieldType}
+			</if>
+			<if test="fieldCall != null">
+				,field_call = #{fieldCall}
+			</if>
+			<if test="fieldRentalfee != null">
+				,field_rentalfee = #{fieldRentalfee}
+			</if>
+			<if test="fieldGrass != null">
+				,field_grass = #{fieldGrass}
+			</if>
+			<if test="fieldInOut != null">
+				,field_in_out = #{fieldInOut}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img1 = #{fieldImg1}
+			</if>
+			<if test="fieldImg2 != null">
+				,field_img2 = #{fieldImg2}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img3 = #{fieldImg3}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img4 = #{fieldImg4}
+			</if>
+			<if test="fieldImg1 != null">
+				,field_img5 = #{fieldImg5}
+			</if>
+		</set>
+		where field_code = #{fieldCode}
+	</update>
+	
+	<update id="modifyGamelist" parameterType="GlistVO">
+		update gamelist
+		<set>
+			<if test="fieldName != null">field_name = #{fieldName}</if>
+			<if test="fieldAddress != null">,field_address = #{fieldAddress}</if>
+			<if test="gameMacth != null">,game_macth = #{gameMacth}</if>
+		</set>
+		where field_code = #{fieldCode}
+	</update>
+	<update id="modifyReservation" parameterType="FieldReservationVO">
+		update field_reservation
+		<set>
+			<if test="fieldName != null">field_name = #{fieldName}</if>
+			<if test="fieldAddress != null">,field_address = #{fieldAddress}</if>
+			<if test="fieldType != null">,field_type = #{fieldType}</if>
+		</set>
+		where field_code = #{fieldCode}
+	</update>
+	
+	<delete id="deleteSelectField">
+		delete from gamefield_info where field_code = #{fieldCode}
+	</delete>
+	<delete id="deleteSelectFieldInGamelist">
+		delete from gamelist where field_code = #{fieldCode}
+	</delete>
+	
+	<select id="selectFieldData" resultType="gameFieldInfoVO">
+		select * from gamefield_info where field_code = #{fieldCode}
+		<!--
+		select * from gamefield_info where field_code in
+		 <foreach> 
+		#{fieldCode}
+		</foreach> -->
+	</select>
+	
+	<select id="selectFieldImage" resultType="String">
+		select field_img1,field_img2,field_img3,field_img4,field_img5 from gamefield_info where field_code = #{fieldCode}
+	</select>
+	
+	<select id="GFieldReservationList" resultType="FieldReservationVO">
+		select a.rv_code, a.rv_type, a.rv_day, a.field_name, a.field_type, a.field_rentalfee, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code
+		where a.rv_type = 'G'
+		ORDER BY a.rv_code DESC
+		
+
+<!-- 	select a.rv_code, a.rv_type, a.rv_day, a.field_name, a.field_type, a.game_day, date_format(a.game_time, '%H:%m') as game_time, a.game_code, a.user_code, b.user_name
+		FROM field_reservation a
+		inner JOIN user_info b ON a.user_code = b.user_code
+		where a.rv_type = 'T'
+		ORDER BY a.rv_code DESC
+ -->	
+	</select>
+	
+	<delete id="deleteFieldReservation">
+		delete from field_reservation where rv_code = #{rvCode}
+	</delete>
+	<delete id="deleteFieldGamelist">
+		delete from gamelist where rv_code = #{rvCode}
+	</delete>
+	
+	<!-- 유저리스트 뽑기 -->
+	<select id="UInfoList" resultType="UserVO">
+		select user_code, team_code, user_name, user_id, user_pw, user_birth,
+			user_gender, user_local, user_district, user_address, user_email1,
+			user_email2, user_authority, user_black, user_reports, user_score,
+			user_win, user_lose, user_status
+		 from user_info where user_status = '활성' and user_reports != 3
+	</select>
+	<!-- 조건부 유저리스트 뽑기 -->
+	<select id="UInfoList1" resultType="UserVO">
+		select user_code, team_code, user_name, user_id, user_pw, user_birth,
+			user_gender, user_local, user_district, user_address, user_email1,
+			user_email2, user_authority, user_black, user_reports, user_score,
+			user_win, user_lose, user_status
+		 from user_info where user_status = '활성' and user_reports != 3
+
+		 	<if test="userCode != null">
+		 		and user_code like concat ('%',#{userCode},'%')
+		 	</if>
+		 	<if test="userName != null">
+		 		and user_name like concat ('%',#{userName},'%')
+		 	</if>
+		 	<if test="userId != null">
+		 		and user_id like concat ('%',#{userId},'%')
+		 	</if>
+		 	<if test="userBirth != null">
+		 		and user_birth like concat ('%',#{userBirth},'%')
+		 	</if>
+		 	<if test="userGender != null">
+		 		and user_gender like concat ('%',#{userGender},'%')
+		 	</if>
+		 	<if test="userAuthority != null">
+		 		and user_authority like concat ('%',#{userAuthority},'%')
+		 	</if>
+		 	<if test="userReports != null">
+		 		and user_reports like concat ('%',#{userReports},'%')
+		 	</if>
+		 	<if test="userStatus != null">
+		 		and user_status like concat ('%',#{userStatus},'%')
+		 	</if>
+		 
+	</select>
+	<!-- 블랙리스트 유저리스트 뽑기 -->
+	<select id="UInfoListB" resultType="UserVO">
+		select user_code, team_code, user_name, user_id, user_pw, user_birth,
+			user_gender, user_local, user_district, user_address, user_email1,
+			user_email2, user_authority, user_black, user_reports, user_score,
+			user_win, user_lose, user_status
+		 from user_info where user_reports = 3
+	</select>
+	<!-- 블랙리스트 조건부 출력 -->
+	<select id="UInfoListB1" resultType="UserVO">
+		select user_code, team_code, user_name, user_id, user_pw, user_birth,
+			user_gender, user_local, user_district, user_address, user_email1,
+			user_email2, user_authority, user_black, user_reports, user_score,
+			user_win, user_lose, user_status
+		 from user_info where user_reports = 3
+
+		 	<if test="userCode != null">
+		 		and user_code like concat ('%',#{userCode},'%')
+		 	</if>
+		 	<if test="userName != null">
+		 		and user_name like concat ('%',#{userName},'%')
+		 	</if>
+		 	<if test="userId != null">
+		 		and user_id like concat ('%',#{userId},'%')
+		 	</if>
+		 	<if test="userBirth != null">
+		 		and user_birth like concat ('%',#{userBirth},'%')
+		 	</if>
+		 	<if test="userGender != null">
+		 		and user_gender like concat ('%',#{userGender},'%')
+		 	</if>
+		 	<if test="userAuthority != null">
+		 		and user_authority like concat ('%',#{userAuthority},'%')
+		 	</if>
+		 	<if test="userReports != null">
+		 		and user_reports like concat ('%',#{userReports},'%')
+		 	</if>
+		 	<if test="userStatus != null">
+		 		and user_status like concat ('%',#{userStatus},'%')
+		 	</if>
+
+	</select>
+	
+	<!-- 블랙리스트 유저만들기 -->
+	<update id="UUInfoList">
+		update user_info 
+		set user_black ='O', user_reports = 3
+		where user_code = #{userCode}
+	</update>
+	
+	<!-- 블랙리스트 만들때 동시에 일어나는 기능 -->
+	<!-- 1. field_reservation rv.state '예약취소' 업데이트 -->
+	<update id="UpdateFRstate">
+		update field_reservation
+		set rv_state = '예약취소'
+		where user_code = #{userCode}
+	</update>
+	<!-- 2.game_list pnum-1, false > true update -->
+	<update id="UpdateGLPnum">
+		UPDATE gamelist AS a INNER JOIN game_result AS b
+		ON a.game_code = b.game_code
+		SET a.game_pnum = a.game_pnum-1
+		WHERE b.user_code = #{userCode}
+	</update>
+	
+	<update id="UpdateGLClose" parameterType="int">
+		UPDATE gamelist AS a INNER JOIN game_result AS b
+		ON a.game_code = b.game_code
+		<set> 
+			<if test="userCode != null">
+				a.close = 'true'
+			</if>
+			
+		</set>	
+		WHERE b.user_code = #{userCode} and a.close = 'false'
+	</update>
+	
+	<!-- 3.game_sjoinlist 삭제 -->
+	<delete id="DeleteGSList">
+		delete from game_sjoinlist
+		where user_code = #{userCode}
+	</delete>
+	<!-- 4.game_result 삭제 -->
+	<delete id="DeleteGR">
+		delete from game_result
+		where user_code = #{userCode}
+	</delete>
+	
+	
+	<!-- 블랙리스트 유저 복귀  -->
+	<update id="RUInfoList">
+		update user_info 
+		set user_black ='X', user_reports = 0
+		where user_code = #{userCode}
+	</update>
+	
+	
+	
+	<!-- 리뷰!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+	<select id="reviewCommentList" resultType="commentVO">
+		select review_code, user_name, content, date_format(create_date,
+		'%Y-%m-%d %H:%i') create_date, user_code
+		from review
+		<where>
+			<if test="userName != null">
+				user_name = #{userName}
+			</if>
+		</where>
+	</select>
+
+	<select id="reviewselect" resultType="commentVO"
+		parameterType="commentVO">
+		select review_code, user_name, content,
+		date_format(create_date, '%Y-%m-%d %H:%i') create_date, user_code
+		from
+		review WHERE user_name = #{userName} or user_code = #{userCode}
+	</select>
+
+	<delete id="deletereviewComment">
+		delete from review where review_code = #{reviewCode}
+	</delete>
+
+
+
+	<!-- 블랙리스트 !!!!!!!!!!!!! -->
+	<select id="selectBlackList" resultType="BlacklistVO">
+		select blacklist_code,
+		user_id, buser_name, blacklist_title, blacklist_content,
+		blacklist_local,
+		date_format(blacklist_create_date, '%Y-%m-%d %H:%i')
+		blacklist_create_date, user_code, blackuser_code
+		from blacklist
+		where is_delete = 0
+		order by
+		blacklist_code desc
+		limit #{start}, #{cntPerPage}
+	</select>
+	
+	<update id="delBlackList">
+		update blacklist set is_delete = 1 
+		where blacklist_code = #{blacklistCode}
+	</update>
+	
+	<!-- 블랙리스트 검색 !!!!!!!!!!!!! -->
+	
+	<select id="joinblackList" resultType="BlacklistVO" parameterType="BlacklistVO">
+		select blacklist_code,
+		user_id, buser_name, blacklist_title, blacklist_content,
+		blacklist_local,
+		date_format(blacklist_create_date, '%Y-%m-%d %H:%i')
+		blacklist_create_date, user_code, blackuser_code
+		from blacklist
+		where is_delete = 0
+
+		<if test="blacklistLocal != null">
+			and blacklist_local like concat('%',#{blacklistLocal},'%')
+		</if>
+		<if test="buserName != null">
+			and buser_name like concat('%',#{buserName},'%')
+		</if>
+		<if test="suserCode != null">
+			and user_code like concat('%',#{suserCode},'%')
+		</if>
+		<if test="sblackuserCode != null">
+			and blackuser_code like concat('%',#{sblackuserCode},'%')
+		</if>
+		
+		order by
+		blacklist_code desc
+	</select>
+	
+
+	<!-- 유저 신고!!!!!!!!!!!!!!! -->
+<!-- 	<select id="selectBlackUser" resultType="BlacklistVO">
+		SELECT user_name ,
+		blackuser_code, COUNT(blackuser_code) 'count', user_black
+		FROM
+		blacklist
+		INNER JOIN user_info ON user_info.user_code =
+		blacklist.blackuser_code
+		where user_black = 'x'
+		GROUP BY blackuser_code
+		HAVING COUNT(blackuser_code) > 2
+	</select> -->
+	
+	<select id="selectBlackUser" resultType="BlacklistVO">
+		SELECT user_name ,
+		blackuser_code, COUNT(blackuser_code) 'count', user_black
+		FROM
+		blacklist
+		INNER JOIN user_info ON user_info.user_code =
+		blacklist.blackuser_code
+		GROUP BY blackuser_code
+		HAVING COUNT(blackuser_code) > 2
+	</select>
+
+	<update id="blackuserCheck">
+		UPDATE user_info SET user_black = 'O'
+		WHERE user_code = #{userCode};
+	</update>
+
+	<update id="blackuserClear">
+		UPDATE user_info SET user_black = 'X'
+		WHERE user_code = #{userCode};
+	</update>
+	
+	
+</mapper>
